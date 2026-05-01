@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Roast My Portfolio 🔥</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --fire: #ff4500;
+      --fire2: #ff8c00;
+      --bg: #0a0a0a;
+      --card: #111111;
+      --border: #222;
+      --text: #f0f0f0;
+      --muted: #555;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(255,69,0,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 700px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .flame {
+      font-size: 64px;
+      display: block;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(48px, 10vw, 80px);
+      letter-spacing: 4px;
+      background: linear-gradient(135deg, var(--fire), var(--fire2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .subtitle span {
+      color: var(--fire);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+
+    .card-label {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--fire);
+      margin-bottom: 16px;
+    }
+
+    textarea {
+      width: 100%;
+      background: #0d0d0d;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      padding: 16px;
+      resize: none;
+      height: 100px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      border-color: var(--fire);
+    }
+
+    textarea::placeholder {
+      color: var(--muted);
+    }
+
+    .examples {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .example-chip {
+      background: #1a1a1a;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 6px 12px;
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .example-chip:hover {
+      border-color: var(--fire);
+      color: var(--fire);
+    }
+
+    button {
+      width: 100%;
+      margin-top: 16px;
+      padding: 18px;
+      background: var(--fire);
+      border: none;
+      border-radius: 2px;
+      color: white;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--fire2);
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .status {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 12px;
+      min-height: 18px;
+    }
+
+    .status.loading {
+      color: var(--fire2);
+      animation: blink 1s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .status.error {
+      color: #ff3333;
+    }
+
+    .roast-box {
+      display: none;
+      background: #0d0d0d;
+      border: 1px solid var(--fire);
+      border-radius: 2px;
+      padding: 24px;
+      margin-top: 24px;
+      position: relative;
+    }
+
+    .roast-box.visible {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .roast-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--fire);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .roast-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .roast-text {
+      font-size: 16px;
+      line-height: 1.8;
+      color: #e0e0e0;
+      font-style: italic;
+    }
+
+    .onchain-badge {
+      display: inline-block;
+      margin-top: 16px;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .onchain-badge::before {
+      content: '⛓ ';
+    }
+
+    .last-roast-section {
+      margin-top: 8px;
+    }
+
+    .last-roast-text {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #888;
+      font-style: italic;
+    }
+
+    footer {
+      margin-top: 60px;
+      text-align: center;
+      font-size: 11px;
+      color: #333;
+      letter-spacing: 2px;
+    }
+
+    footer a {
+      color: var(--fire);
+      text-decoration: none;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="flame">🔥</span>
+      <h1>Roast My Portfolio</h1>
+      <p class="subtitle">Powered by <span>GenLayer AI Consensus</span> — Verdict stored onchain</p>
+    </header>
+
+    <div class="card">
+      <p class="card-label">Your Portfolio</p>
+      <textarea id="portfolioInput" placeholder="e.g. 80% SHIB, 15% LUNA, 5% BTC"></textarea>
+
+      <div class="examples">
+        <span class="example-chip" onclick="setExample('80% SHIB, 15% LUNA, 5% BTC')">Degen Classic</span>
+        <span class="example-chip" onclick="setExample('50% ETH, 30% BTC, 20% USDT')">Safe Sam</span>
+        <span class="example-chip" onclick="setExample('100% PEPE')">Full Degen</span>
+        <span class="example-chip" onclick="setExample('40% BTC, 30% ETH, 20% SOL, 10% LINK')">Diversified Chad</span>
+      </div>
+
+      <button id="roastBtn" onclick="submitRoast()">🔥 ROAST ME</button>
+      <p class="status" id="statusMsg"></p>
+
+      <div class="roast-box" id="roastResult">
+        <div class="roast-label">AI Consensus Verdict</div>
+        <p class="roast-text" id="roastText"></p>
+        <span class="onchain-badge">Stored permanently on GenLayer Testnet</span>
+      </div>
+    </div>
+
+    <div class="card last-roast-section">
+      <p class="card-label">Last Roast Onchain</p>
+      <p class="last-roast-text" id="lastRoast">Loading...</p>
+    </div>
+
+    <footer>
+      Built on <a href="https://genlayer.com" target="_blank">GenLayer</a> — AI validators reach consensus on your portfolio's fate
+    </footer>
+  </div>
+
+  <script>
+    const CONTRACT_ADDRESS = "0x0A43d55d80Db10d63aE2b967B0386B32aA583D2a";
+    const RPC_URL = "https://studio.genlayer.com/api";
+
+    function setExample(text) {
+      document.getElementById('portfolioInput').value = text;
+    }
+
+    async function callRPC(method, params) {
+      const res = await fetch(RPC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', method, params, id: 1 })
+      });
+      return res.json();
+    }
+
+    async function loadLastRoast() {
+      try {
+        const data = await callRPC('gen_call', [{
+          to: CONTRACT_ADDRESS,
+          data: { function: 'get_last_roast', args: [] }
+        }, 'latest']);
+
+        const roast = data?.result || data?.result?.data;
+        if (roast && typeof roast === 'string' && roast.length > 0) {
+          document.getElementById('lastRoast').textContent = '"' + roast + '"';
+        } else {
+          document.getElementById('lastRoast').textContent = 'No roasts yet. Be the first.';
+        }
+      } catch (e) {
+        document.getElementById('lastRoast').textContent = 'No roasts yet. Be the first.';
+      }
+    }
+
+    async function submitRoast() {
+      const portfolio = document.getElementById('portfolioInput').value.trim();
+      if (!portfolio) return;
+
+      const btn = document.getElementById('roastBtn');
+      const status = document.getElementById('statusMsg');
+      const resultBox = document.getElementById('roastResult');
+      const roastText = document.getElementById('roastText');
+
+      btn.disabled = true;
+      resultBox.classList.remove('visible');
+      status.className = 'status loading';
+      status.textContent = '⏳ AI validators are reading your portfolio...';
+
+      try {
+        const data = await callRPC('gen_sendTransaction', [{
+          to: CONTRACT_ADDRESS,
+          data: { function: 'roast', args: [portfolio] }
+        }]);
+
+        if (data.error) throw new Error(data.error.message);
+
+        const txHash = data.result;
+        status.textContent = '⏳ Waiting for AI consensus... (~1-2 min)';
+
+        // Poll for result
+        await pollForResult(txHash, roastText, resultBox, status);
+
+      } catch (e) {
+        status.className = 'status error';
+        status.textContent = '❌ Error: ' + (e.message || 'Something went wrong');
+        btn.disabled = false;
+      }
+    }
+
+    async function pollForResult(txHash, roastText, resultBox, status) {
+      const btn = document.getElementById('roastBtn');
+      let attempts = 0;
+      const maxAttempts = 60;
+
+      const poll = async () => {
+        attempts++;
+        try {
+          const data = await callRPC('gen_getTransactionByHash', [txHash]);
+          const tx = data?.result;
+
+          if (tx && (tx.status === 'FINALIZED' || tx.consensus_data)) {
+            // Get the latest roast
+            await new Promise(r => setTimeout(r, 2000));
+            const roastData = await callRPC('gen_call', [{
+              to: CONTRACT_ADDRESS,
+              data: { function: 'get_last_roast', args: [] }
+            }, 'latest']);
+
+            const roast = roastData?.result || roastData?.result?.data;
+            if (roast && typeof roast === 'string') {
+              roastText.textContent = '"' + roast + '"';
+              resultBox.classList.add('visible');
+              status.className = 'status';
+              status.textContent = '✅ Verdict finalized onchain';
+              document.getElementById('lastRoast').textContent = '"' + roast + '"';
+            }
+            btn.disabled = false;
+            return;
+          }
+
+          if (attempts < maxAttempts) {
+            status.textContent = `⏳ AI validators deliberating... (${attempts * 5}s)`;
+            setTimeout(poll, 5000);
+          } else {
+            status.className = 'status error';
+            status.textContent = '⌛ Taking longer than expected. Check back soon.';
+            btn.disabled = false;
+          }
+        } catch (e) {
+          if (attempts < maxAttempts) {
+            setTimeout(poll, 5000);
+          } else {
+            btn.disabled = false;
+          }
+        }
+      };
+
+      setTimeout(poll, 5000);
+    }
+
+    // Load last roast on page load
+    loadLastRoast();
+  </script>
+</body>
+</html>
