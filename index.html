@@ -25,6 +25,7 @@
       flex-direction: column;
       align-items: center;
       padding: 40px 20px;
+      overflow-x: hidden;
     }
     body::before {
       content: '';
@@ -36,11 +37,12 @@
       height: 600px;
       background: radial-gradient(circle, rgba(255,69,0,0.07) 0%, transparent 70%);
       pointer-events: none;
+      z-index: 0;
     }
-    .container { max-width: 700px; width: 100%; position: relative; }
+    .container { max-width: 700px; width: 100%; position: relative; z-index: 1; }
     header { text-align: center; margin-bottom: 50px; }
     .flame { font-size: 64px; display: block; animation: pulse 2s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
     h1 {
       font-family: 'Bebas Neue', sans-serif;
       font-size: clamp(48px, 10vw, 80px);
@@ -56,73 +58,54 @@
     .subtitle span { color: var(--fire); }
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 32px; margin-bottom: 24px; }
     .card-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--fire); margin-bottom: 16px; }
-    textarea, input[type="password"] {
-      width: 100%;
-      background: #0d0d0d;
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      color: var(--text);
-      font-family: 'Space Mono', monospace;
-      font-size: 14px;
-      padding: 16px;
-      outline: none;
-      transition: border-color 0.2s;
+    textarea {
+      width: 100%; background: #0d0d0d; border: 1px solid var(--border);
+      border-radius: 2px; color: var(--text); font-family: 'Space Mono', monospace;
+      font-size: 14px; padding: 16px; resize: none; height: 100px; outline: none; transition: border-color 0.2s;
     }
-    textarea { resize: none; height: 100px; }
-    textarea:focus, input:focus { border-color: var(--fire); }
-    textarea::placeholder, input::placeholder { color: var(--muted); }
+    textarea:focus { border-color: var(--fire); }
+    textarea::placeholder { color: var(--muted); }
     .examples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
     .example-chip {
-      background: #1a1a1a;
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      padding: 6px 12px;
-      font-size: 11px;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: 'Space Mono', monospace;
+      background: #1a1a1a; border: 1px solid var(--border); border-radius: 2px;
+      padding: 6px 12px; font-size: 11px; color: var(--muted); cursor: pointer;
+      transition: all 0.2s; font-family: 'Space Mono', monospace;
     }
     .example-chip:hover { border-color: var(--fire); color: var(--fire); }
     button {
-      width: 100%;
-      margin-top: 16px;
-      padding: 18px;
-      background: var(--fire);
-      border: none;
-      border-radius: 2px;
-      color: white;
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 22px;
-      letter-spacing: 3px;
-      cursor: pointer;
-      transition: all 0.2s;
+      width: 100%; margin-top: 16px; padding: 18px; background: var(--fire);
+      border: none; border-radius: 2px; color: white; font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px; letter-spacing: 3px; cursor: pointer; transition: all 0.2s;
     }
     button:hover:not(:disabled) { background: var(--fire2); transform: translateY(-1px); }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
     .status { text-align: center; font-size: 12px; color: var(--muted); margin-top: 12px; min-height: 18px; }
-    .status.loading { color: var(--fire2); animation: blink 1s ease-in-out infinite; }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
-    .status.error { color: #ff3333; }
-    .status.success { color: #00cc66; }
+    .status.success { color: #44ff88; }
+    .steps { background: #0d0d0d; border: 1px solid #333; border-radius: 2px; padding: 20px; margin-top: 16px; display: none; }
+    .steps.visible { display: block; animation: fadeIn 0.5s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .steps h3 { font-size: 12px; letter-spacing: 2px; color: var(--fire2); margin-bottom: 12px; }
+    .steps ol { padding-left: 20px; }
+    .steps li { font-size: 13px; color: #aaa; margin-bottom: 10px; line-height: 1.6; }
+    .steps a { color: var(--fire); text-decoration: none; }
+    .steps strong { color: var(--text); }
+    .copy-btn {
+      width: auto; padding: 8px 16px; font-size: 14px; margin-top: 12px;
+      background: #1a1a1a; border: 1px solid var(--fire); letter-spacing: 1px;
+    }
     .roast-box {
-      display: none;
-      background: #0d0d0d;
-      border: 1px solid var(--fire);
-      border-radius: 2px;
-      padding: 24px;
-      margin-top: 24px;
+      display: none; background: #0d0d0d; border: 1px solid var(--fire);
+      border-radius: 2px; padding: 24px; margin-top: 24px;
     }
     .roast-box.visible { display: block; animation: fadeIn 0.5s ease; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-    .roast-label { font-size: 10px; letter-spacing: 3px; color: var(--fire); text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .roast-label {
+      font-size: 10px; letter-spacing: 3px; color: var(--fire); text-transform: uppercase;
+      margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+    }
     .roast-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
     .roast-text { font-size: 16px; line-height: 1.8; color: #e0e0e0; font-style: italic; }
     .onchain-badge { display: inline-block; margin-top: 16px; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
-    .onchain-badge::before { content: '⛓ '; }
     .last-roast-text { font-size: 14px; line-height: 1.8; color: #888; font-style: italic; }
-    .key-hint { font-size: 11px; color: var(--muted); margin-top: 8px; }
-    .key-hint a { color: var(--fire); text-decoration: none; }
     footer { margin-top: 60px; text-align: center; font-size: 11px; color: #333; letter-spacing: 2px; }
     footer a { color: var(--fire); text-decoration: none; }
   </style>
@@ -144,18 +127,23 @@
         <span class="example-chip" onclick="setExample('100% PEPE')">Full Degen</span>
         <span class="example-chip" onclick="setExample('40% BTC, 30% ETH, 20% SOL, 10% LINK')">Diversified Chad</span>
       </div>
+      <button onclick="submitRoast()">🔥 ROAST ME</button>
+      <p class="status success" id="statusMsg"></p>
 
-      <div style="margin-top: 20px;">
-        <p class="card-label">Testnet Private Key</p>
-        <input type="password" id="privateKeyInput" placeholder="0x... paste from GenLayer Studio"/>
-        <p class="key-hint">
-          Get it from <a href="https://studio.genlayer.com" target="_blank">studio.genlayer.com</a> → click your wallet address top right → Export Private Key. Testnet only, no real funds.
-        </p>
+      <div class="steps" id="stepsBox">
+        <h3>⚡ GET YOUR ROAST IN 3 STEPS</h3>
+        <ol>
+          <li>Your portfolio was copied to clipboard ✅</li>
+          <li><a href="https://studio.genlayer.com/run-debug" target="_blank">Open GenLayer Studio →</a> find <strong>Asset Roaster</strong> contract</li>
+          <li>Under <strong>Write Methods → roast</strong> → paste → <strong>Send Transaction</strong> → wait 1 min → click <strong>get_last_roast → Call Contract</strong></li>
+        </ol>
+        <button class="copy-btn" onclick="copyPortfolio()">📋 Copy Portfolio Again</button>
       </div>
+    </div>
 
-      <button id="roastBtn" onclick="submitRoast()">🔥 ROAST ME</button>
-      <p class="status" id="statusMsg"></p>
-
+    <div class="card">
+      <p class="card-label">Last Roast Onchain</p>
+      <p class="last-roast-text" id="lastRoast">Loading from GenLayer...</p>
       <div class="roast-box" id="roastResult">
         <div class="roast-label">AI Consensus Verdict</div>
         <p class="roast-text" id="roastText"></p>
@@ -163,116 +151,63 @@
       </div>
     </div>
 
-    <div class="card">
-      <p class="card-label">Last Roast Onchain</p>
-      <p class="last-roast-text" id="lastRoast">Loading...</p>
-    </div>
-
     <footer>
-      Built on <a href="https://genlayer.com" target="_blank">GenLayer</a> — AI validators reach consensus on your portfolio's fate
+      Built on <a href="https://genlayer.com" target="_blank">GenLayer</a> — Multiple AI validators reach consensus on your portfolio's fate
     </footer>
   </div>
 
-<script type="module">
-  import { createClient, simulator } from 'https://esm.sh/genlayer-js@latest';
+  <script>
+    const CONTRACT = '0x0A43d55d80Db10d63aE2b967B0386B32aA583D2a';
+    const RPC = 'https://studio.genlayer.com/api';
+    let currentPortfolio = '';
 
-  const CONTRACT = "0x0A43d55d80Db10d63aE2b967B0386B32aA583D2a";
+    function setExample(text) {
+      document.getElementById('portfolioInput').value = text;
+    }
 
-  window.setExample = (text) => {
-    document.getElementById('portfolioInput').value = text;
-  };
+    function copyPortfolio() {
+      if (currentPortfolio) navigator.clipboard.writeText(currentPortfolio).catch(() => {});
+    }
 
-  async function getClient(privateKey) {
-    return createClient({
-      chain: simulator,
-      ...(privateKey ? { account: privateKey } : {}),
-    });
-  }
-
-  async function loadLastRoast() {
-    try {
-      const client = await getClient();
-      const result = await client.readContract({
-        address: CONTRACT,
-        functionName: 'get_last_roast',
-        args: [],
-      });
+    async function loadLastRoast() {
       const el = document.getElementById('lastRoast');
-      el.textContent = result ? `"${result}"` : 'No roasts yet. Be the first.';
-    } catch (e) {
-      document.getElementById('lastRoast').textContent = 'No roasts yet. Be the first.';
-    }
-  }
-
-  window.submitRoast = async () => {
-    const portfolio = document.getElementById('portfolioInput').value.trim();
-    const privateKey = document.getElementById('privateKeyInput').value.trim();
-    const btn = document.getElementById('roastBtn');
-    const status = document.getElementById('statusMsg');
-    const resultBox = document.getElementById('roastResult');
-    const roastText = document.getElementById('roastText');
-
-    if (!portfolio) { status.className = 'status error'; status.textContent = '❌ Enter your portfolio first'; return; }
-    if (!privateKey) { status.className = 'status error'; status.textContent = '❌ Enter your testnet private key'; return; }
-
-    btn.disabled = true;
-    resultBox.classList.remove('visible');
-    status.className = 'status loading';
-    status.textContent = '⏳ Sending to GenLayer AI validators...';
-
-    try {
-      const client = await getClient(privateKey);
-
-      const txHash = await client.writeContract({
-        address: CONTRACT,
-        functionName: 'roast',
-        args: [portfolio],
-      });
-
-      status.textContent = '⏳ AI validators deliberating... (~1-2 min)';
-
-      let attempts = 0;
-      const poll = async () => {
-        attempts++;
-        try {
-          const receipt = await client.waitForTransactionReceipt({ hash: txHash });
-          if (receipt) {
-            await new Promise(r => setTimeout(r, 2000));
-            const roast = await client.readContract({
-              address: CONTRACT,
-              functionName: 'get_last_roast',
-              args: [],
-            });
-            if (roast) {
-              roastText.textContent = `"${roast}"`;
-              resultBox.classList.add('visible');
-              status.className = 'status success';
-              status.textContent = '✅ Verdict finalized onchain';
-              document.getElementById('lastRoast').textContent = `"${roast}"`;
-            }
-            btn.disabled = false;
-            return;
-          }
-        } catch {}
-        if (attempts < 40) {
-          status.textContent = `⏳ AI validators deliberating... (${attempts * 5}s)`;
-          setTimeout(poll, 5000);
+      const box = document.getElementById('roastResult');
+      const roastText = document.getElementById('roastText');
+      try {
+        const res = await fetch(RPC, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0', id: 1,
+            method: 'eth_call',
+            params: [{ to: CONTRACT, data: { function: 'get_last_roast', args: [] } }, 'latest']
+          })
+        });
+        const data = await res.json();
+        const roast = data?.result;
+        if (roast && typeof roast === 'string' && roast.length > 5) {
+          el.textContent = '"' + roast + '"';
+          roastText.textContent = '"' + roast + '"';
+          box.classList.add('visible');
         } else {
-          status.className = 'status error';
-          status.textContent = '⌛ Refresh and check Last Roast section.';
-          btn.disabled = false;
+          el.textContent = 'No roasts yet. Be the first. 👇';
         }
-      };
-      setTimeout(poll, 8000);
-
-    } catch (e) {
-      status.className = 'status error';
-      status.textContent = '❌ ' + (e.message || 'Something went wrong');
-      btn.disabled = false;
+      } catch (e) {
+        el.textContent = 'No roasts yet. Be the first. 👇';
+      }
     }
-  };
 
-  loadLastRoast();
-</script>
+    async function submitRoast() {
+      const portfolio = document.getElementById('portfolioInput').value.trim();
+      if (!portfolio) return;
+      currentPortfolio = portfolio;
+      try { await navigator.clipboard.writeText(portfolio); } catch(e) {}
+      document.getElementById('stepsBox').classList.add('visible');
+      document.getElementById('statusMsg').textContent = '✅ Portfolio copied to clipboard!';
+      window.open('https://studio.genlayer.com/run-debug', '_blank');
+    }
+
+    loadLastRoast();
+  </script>
 </body>
 </html>
