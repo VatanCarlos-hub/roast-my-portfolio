@@ -29,9 +29,10 @@
     button:hover:not(:disabled) { background: var(--fire2); transform: translateY(-1px); }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
     .status { text-align: center; font-size: 12px; color: var(--muted); margin-top: 12px; min-height: 18px; }
-    .status.loading { color: var(--fire2); animation: blink 1s ease-in-out infinite; }
+    .status.loading { color: var(--fire2); animation: blink 1.5s ease-in-out infinite; }
     .status.error { color: #ff3333; }
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .status.success { color: #44ff88; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     .roast-box { display: none; background: #0d0d0d; border: 1px solid var(--fire); border-radius: 2px; padding: 24px; margin-top: 24px; }
     .roast-box.visible { display: block; animation: fadeIn 0.5s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -39,6 +40,10 @@
     .roast-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
     .roast-text { font-size: 16px; line-height: 1.8; color: #e0e0e0; font-style: italic; }
     .onchain-badge { display: inline-block; margin-top: 16px; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+    .wallet-status { font-size: 11px; color: var(--muted); text-align: center; margin-bottom: 16px; letter-spacing: 1px; }
+    .wallet-status .connected { color: #44ff88; }
+    .tx-link { display: inline-block; margin-top: 12px; font-size: 11px; color: var(--fire); text-decoration: none; letter-spacing: 1px; }
+    .tx-link:hover { text-decoration: underline; }
     footer { margin-top: 60px; text-align: center; font-size: 11px; color: #333; letter-spacing: 2px; }
     footer a { color: var(--fire); text-decoration: none; }
   </style>
@@ -48,10 +53,11 @@
     <header>
       <span class="flame">🔥</span>
       <h1>Roast My Portfolio</h1>
-      <p class="subtitle">Powered by <span>GenLayer AI Consensus</span> — Verdict stored onchain</p>
+      <p class="subtitle">100% Native <span>GenLayer</span> — AI Validators Reach Consensus Onchain</p>
     </header>
 
     <div class="card">
+      <p class="wallet-status" id="walletStatus">⚪ Wallet not connected</p>
       <p class="card-label">Your Portfolio</p>
       <textarea id="portfolioInput" placeholder="e.g. 80% SHIB, 15% LUNA, 5% BTC"></textarea>
       <div class="examples">
@@ -60,64 +66,139 @@
         <span class="example-chip" onclick="setExample('100% PEPE')">Full Degen</span>
         <span class="example-chip" onclick="setExample('40% BTC, 30% ETH, 20% SOL, 10% LINK')">Diversified Chad</span>
       </div>
-      <button id="roastBtn" onclick="submitRoast()">🔥 ROAST ME</button>
+      <button id="roastBtn">🔥 ROAST ME</button>
       <p class="status" id="statusMsg"></p>
 
       <div class="roast-box" id="roastResult">
-        <div class="roast-label">AI Verdict</div>
+        <div class="roast-label">AI Consensus Verdict</div>
         <p class="roast-text" id="roastText"></p>
-        <span class="onchain-badge">⛓ Powered by GenLayer Intelligent Contract</span>
+        <span class="onchain-badge">⛓ Stored permanently on GenLayer Studionet</span>
       </div>
     </div>
 
     <footer>
-      Built on <a href="https://genlayer.com" target="_blank">GenLayer</a> — AI validators reach consensus on your portfolio's fate
+      Built on <a href="https://genlayer.com" target="_blank">GenLayer</a> — Multiple AI validators reach consensus on your portfolio's fate
     </footer>
   </div>
 
-  <script>
-    function setExample(text) {
+  <script type="module">
+    import { createClient } from 'https://esm.sh/genlayer-js@latest';
+    import { studionet } from 'https://esm.sh/genlayer-js@latest/chains';
+    import { TransactionStatus } from 'https://esm.sh/genlayer-js@latest/types';
+
+    const CONTRACT = '0x0A43d55d80Db10d63aE2b967B0386B32aA583D2a';
+    let client = null;
+    let userAddress = null;
+
+    const btn = document.getElementById('roastBtn');
+    const status = document.getElementById('statusMsg');
+    const walletStatus = document.getElementById('walletStatus');
+    const resultBox = document.getElementById('roastResult');
+    const roastText = document.getElementById('roastText');
+
+    window.setExample = (text) => {
       document.getElementById('portfolioInput').value = text;
+    };
+
+    async function connectWallet() {
+      if (!window.ethereum) {
+        status.className = 'status error';
+        status.textContent = '❌ MetaMask not found. Please install MetaMask.';
+        return false;
+      }
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        userAddress = accounts[0];
+        client = createClient({ chain: studionet, account: userAddress });
+        walletStatus.innerHTML = `<span class="connected">⬢ Connected: ${userAddress.slice(0,6)}...${userAddress.slice(-4)}</span>`;
+        return true;
+      } catch (e) {
+        status.className = 'status error';
+        status.textContent = '❌ Wallet connection rejected';
+        return false;
+      }
     }
 
-    async function submitRoast() {
+    async function loadLastRoast() {
+      try {
+        const tempClient = createClient({ chain: studionet });
+        const roast = await tempClient.readContract({
+          address: CONTRACT,
+          functionName: 'get_last_roast',
+          args: []
+        });
+        if (roast && typeof roast === 'string' && roast.length > 5) {
+          roastText.textContent = '"' + roast + '"';
+          resultBox.classList.add('visible');
+        }
+      } catch (e) {
+        console.log('No previous roast yet');
+      }
+    }
+
+    btn.addEventListener('click', async () => {
       const portfolio = document.getElementById('portfolioInput').value.trim();
       if (!portfolio) return;
 
-      const btn = document.getElementById('roastBtn');
-      const status = document.getElementById('statusMsg');
-      const resultBox = document.getElementById('roastResult');
-      const roastText = document.getElementById('roastText');
+      if (!client) {
+        const connected = await connectWallet();
+        if (!connected) return;
+      }
 
       btn.disabled = true;
       resultBox.classList.remove('visible');
       status.className = 'status loading';
-      status.textContent = '⏳ AI validators are roasting your portfolio...';
+      status.textContent = '⏳ Sending transaction... confirm in MetaMask';
 
       try {
-        const res = await fetch('/api/roast', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ portfolio })
+        const txHash = await client.writeContract({
+          address: CONTRACT,
+          functionName: 'roast',
+          args: [portfolio],
+          value: 0n
         });
 
-        const data = await res.json();
+        status.textContent = '⏳ AI validators reaching consensus... (~1-2 min)';
 
-        if (data.roast) {
-          roastText.textContent = '"' + data.roast + '"';
-          resultBox.classList.add('visible');
-          status.className = 'status';
-          status.textContent = '';
-        } else {
-          throw new Error(data.error || 'Something went wrong');
-        }
+        await client.waitForTransactionReceipt({
+          hash: txHash,
+          status: TransactionStatus.FINALIZED,
+          retries: 60,
+          interval: 5000
+        });
+
+        const roast = await client.readContract({
+          address: CONTRACT,
+          functionName: 'get_last_roast',
+          args: []
+        });
+
+        roastText.textContent = '"' + roast + '"';
+        resultBox.classList.add('visible');
+        status.className = 'status success';
+        status.innerHTML = `✅ Verdict finalized onchain`;
+
       } catch (e) {
+        console.error(e);
         status.className = 'status error';
-        status.textContent = '❌ ' + e.message;
+        status.textContent = '❌ ' + (e.shortMessage || e.message || 'Transaction failed');
       }
 
       btn.disabled = false;
+    });
+
+    // Try to connect on load if already authorized
+    if (window.ethereum) {
+      window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+        if (accounts.length > 0) {
+          userAddress = accounts[0];
+          client = createClient({ chain: studionet, account: userAddress });
+          walletStatus.innerHTML = `<span class="connected">⬢ Connected: ${userAddress.slice(0,6)}...${userAddress.slice(-4)}</span>`;
+        }
+      });
     }
+
+    loadLastRoast();
   </script>
 </body>
 </html>
