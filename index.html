@@ -87,6 +87,17 @@
     import { TransactionStatus } from 'https://esm.sh/genlayer-js@latest/types';
 
     const CONTRACT = '0x0A43d55d80Db10d63aE2b967B0386B32aA583D2a';
+
+    // GenLayer Studionet chain config
+    const GENLAYER_CHAIN_ID = '0xf22f'; // 61999 in decimal
+    const GENLAYER_NETWORK = {
+      chainId: GENLAYER_CHAIN_ID,
+      chainName: 'GenLayer Studionet',
+      nativeCurrency: { name: 'GEN', symbol: 'GEN', decimals: 18 },
+      rpcUrls: ['https://studio.genlayer.com/api'],
+      blockExplorerUrls: ['https://studio.genlayer.com']
+    };
+
     let client = null;
     let userAddress = null;
 
@@ -100,13 +111,53 @@
       document.getElementById('portfolioInput').value = text;
     };
 
+    // AUTO NETWORK SWITCH — fügt GenLayer hinzu falls nötig und wechselt automatisch
+    async function switchToGenLayer() {
+      try {
+        // Versuche zuerst direkt zu wechseln
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: GENLAYER_CHAIN_ID }]
+        });
+        return true;
+      } catch (switchError) {
+        // Chain existiert noch nicht im Wallet → automatisch hinzufügen
+        if (switchError.code === 4902 || switchError.code === -32603) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [GENLAYER_NETWORK]
+            });
+            return true;
+          } catch (addError) {
+            status.className = 'status error';
+            status.textContent = '❌ Could not add GenLayer network. Please add it manually.';
+            return false;
+          }
+        }
+        status.className = 'status error';
+        status.textContent = '❌ Please switch to GenLayer Studionet in your wallet.';
+        return false;
+      }
+    }
+
     async function connectWallet() {
       if (!window.ethereum) {
         status.className = 'status error';
         status.textContent = '❌ MetaMask not found. Please install MetaMask.';
         return false;
       }
+
       try {
+        // Zuerst Netzwerk prüfen und ggf. wechseln
+        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (currentChainId !== GENLAYER_CHAIN_ID) {
+          status.className = 'status loading';
+          status.textContent = '🔄 Switching to GenLayer Studionet...';
+          const switched = await switchToGenLayer();
+          if (!switched) return false;
+        }
+
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         userAddress = accounts[0];
         client = createClient({ chain: studionet, account: userAddress });
@@ -117,6 +168,22 @@
         status.textContent = '❌ Wallet connection rejected';
         return false;
       }
+    }
+
+    // Auf Netzwerkwechsel reagieren
+    if (window.ethereum) {
+      window.ethereum.on('chainChanged', () => {
+        window.location.reload();
+      });
+      window.ethereum.on('accountsChanged', (accounts) => {
+        if (accounts.length === 0) {
+          walletStatus.textContent = '⚪ Wallet not connected';
+          client = null;
+          userAddress = null;
+        } else {
+          window.location.reload();
+        }
+      });
     }
 
     async function loadLastRoast() {
@@ -187,13 +254,18 @@
       btn.disabled = false;
     });
 
-    // Try to connect on load if already authorized
+    // Auto-connect falls bereits autorisiert
     if (window.ethereum) {
-      window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+      window.ethereum.request({ method: 'eth_accounts' }).then(async accounts => {
         if (accounts.length > 0) {
-          userAddress = accounts[0];
-          client = createClient({ chain: studionet, account: userAddress });
-          walletStatus.innerHTML = `<span class="connected">⬢ Connected: ${userAddress.slice(0,6)}...${userAddress.slice(-4)}</span>`;
+          const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+          if (currentChainId === GENLAYER_CHAIN_ID) {
+            userAddress = accounts[0];
+            client = createClient({ chain: studionet, account: userAddress });
+            walletStatus.innerHTML = `<span class="connected">⬢ Connected: ${userAddress.slice(0,6)}...${userAddress.slice(-4)}</span>`;
+          } else {
+            walletStatus.textContent = '⚠️ Wrong network — click Roast Me to auto-switch';
+          }
         }
       });
     }
